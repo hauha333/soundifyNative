@@ -8,6 +8,7 @@ export type RepeatTypes = 'off' | 'all' | 'one';
 
 interface InitialState {
   isPlay: boolean;
+  seek: number;
   isShuffle: boolean;
   isRepeat: RepeatTypes;
   currentPlayedTrackId: number | null;
@@ -23,6 +24,7 @@ interface InitialState {
 
 export const initialState: InitialState = {
   isPlay: false,
+  seek: 0,
   isShuffle: false,
   isRepeat: REPEAT_MODES.OFF,
   currentPlayedTrackId: null,
@@ -43,10 +45,16 @@ const playerSlice = createSlice({
     setPlay: (state, action: PayloadAction<InitialState['isPlay']>) => {
       state.isPlay = action.payload;
     },
+    setSeek: (state, action: PayloadAction<InitialState['seek']>) => {
+      state.seek = action.payload;
+    },
     setIsShuffle: (state, action: PayloadAction<InitialState['isShuffle']>) => {
       state.isShuffle = action.payload;
     },
-    setIsRepeat: (state, action: PayloadAction<InitialState['isRepeat']>) => {
+    toggleRepeat(state) {
+      state.isRepeat = state.isRepeat === 'off' ? 'all' : state.isRepeat === 'all' ? 'one' : 'off';
+    },
+    setIsRepeat(state, action: PayloadAction<RepeatTypes>) {
       state.isRepeat = action.payload;
     },
     setCurrentPlayedTrackId: (
@@ -81,6 +89,8 @@ const playerSlice = createSlice({
 
 export const {
   setPlay,
+  setSeek,
+  toggleRepeat,
   setIsShuffle,
   setShuffledQueue,
   setIsRepeat,

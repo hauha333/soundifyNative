@@ -1,5 +1,4 @@
 import { authenticationApi } from '@/services';
-import { State } from '@/utils/store';
 import { createSlice, Dispatch, PayloadAction } from '@reduxjs/toolkit';
 import { useDispatch, useSelector } from 'react-redux';
 

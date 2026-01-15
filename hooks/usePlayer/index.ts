@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import TrackPlayer, {
+  RepeatMode,
   Capability,
   isPlaying,
   State,
@@ -8,17 +9,24 @@ import TrackPlayer, {
 } from 'react-native-track-player';
 import { Track } from '@/types/track';
 import Constants from 'expo-constants';
-import { UsePlayerProps } from './props';
+import { HandleTogglePlay, UsePlayerProps } from './props';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  RepeatTypes,
   setCurrentPlayedTrackId,
+  setIsRepeat,
+  setIsShuffle,
   setPlay,
   setProgress,
-  setTriggerLike
+  setSeek,
+  setShuffledQueue,
+  setTriggerLike,
+  toggleRepeat
 } from '@/slices/playerSlice';
 import { RootState } from '@/utils/store';
 import { useDeleteLikedTrackMutation, useSetLikedTracksMutation } from '@/services/userApi';
-import { router, usePathname } from 'expo-router';
+import { generateShuffledQueue } from '@/functions/generateShuffled';
+import { REPEAT_MODES } from '@/utils/constants/ui';
 
 const { staticMedia, trackCovers } = Constants.expoConfig?.extra ?? {};
 
@@ -36,11 +44,27 @@ export const usePlayer = (props?: Partial<UsePlayerProps>) => {
 
   const {
     currentPlayedTrackId,
-    queue: currentQueue,
-    isPlay
+    queue: reduxQueue,
+    shuffledQueue,
+    isPlay,
+    isRepeat,
+    isShuffle
   } = useSelector((state: RootState) => state.playerStore);
 
+  const currentQueue = isShuffle ? shuffledQueue : (queueProp ?? reduxQueue);
+
   const stableQueue = queueProp ?? currentQueue;
+
+  const repeatToTrackPlayer = (repeat: RepeatTypes) => {
+    switch (repeat) {
+      case 'one':
+        return RepeatMode.Track;
+      case 'all':
+        return RepeatMode.Queue;
+      default:
+        return RepeatMode.Off;
+    }
+  };
 
   const getAudioSrc = useCallback((track: Track): string => {
     if (!staticMedia || !track?.path) return '';
@@ -78,6 +102,18 @@ export const usePlayer = (props?: Partial<UsePlayerProps>) => {
     return queue.find((q) => q.id_track === currentPlayedTrackId);
   }, [currentPlayedTrackId, queue]);
 
+  const isFirst =
+    currentQueue != null &&
+    currentPlayedTrack &&
+    currentQueue.length > 0 &&
+    currentQueue[0]?.id_track === currentPlayedTrack.id_track;
+
+  const isLast =
+    currentQueue != null &&
+    currentPlayedTrack &&
+    currentQueue.length > 0 &&
+    currentQueue![currentQueue!.length - 1]?.id_track === currentPlayedTrack.id_track;
+
   const handlePlay = useCallback(async () => {
     await TrackPlayer.play();
     return true;
@@ -88,9 +124,46 @@ export const usePlayer = (props?: Partial<UsePlayerProps>) => {
     return false;
   }, [dispatch]);
 
-  const handleTogglePlay = useCallback(
-    async (track: Track) => {
+  const handleRepeat = useCallback(() => {
+    dispatch(toggleRepeat());
+  }, [dispatch]);
+
+  const handleSeek = useCallback(async (seek: number) => {
+    await TrackPlayer.seekTo(seek);
+    dispatch(setSeek(seek));
+  }, []);
+
+  const handleShuffle = useCallback(
+    async (startTrack?: Track, regenerateOnly = false) => {
+      if (queueProp) {
+        const baseTrack = startTrack ?? currentPlayedTrack;
+        if (baseTrack) {
+          const newQueue = generateShuffledQueue(baseTrack, queueProp ?? []);
+          dispatch(setShuffledQueue(newQueue));
+        }
+      }
+
+      if (!startTrack && !regenerateOnly) {
+        dispatch(setIsShuffle(!isShuffle));
+      }
+    },
+    [currentPlayedTrack, queueProp, dispatch, isShuffle]
+  );
+
+  const handleTogglePlay: HandleTogglePlay = useCallback(
+    async (track, options) => {
+      // const { skipShuffle } = options || {};
+
       if (!track) return;
+
+      if (track && track.id_track !== currentPlayedTrackId) {
+        dispatch(setSeek(0));
+        dispatch(setPlay(true));
+      }
+
+      if (track?.id_track !== currentPlayedTrackId) {
+        handleShuffle(track);
+      }
 
       await setupPlayerOnce();
 
@@ -156,24 +229,24 @@ export const usePlayer = (props?: Partial<UsePlayerProps>) => {
   );
 
   const handlePrev = useCallback(() => {
-    // if (isRepeat === REPEAT_MODES.ALL && currentQueue && isFirst) {
-    //   const lastTrack = currentQueue[currentQueue.length - 1];
-    //   handleTogglePlay(lastTrack, { skipShuffle: true });
-    //   return;
-    // }
+    if (isRepeat === REPEAT_MODES.ALL && currentQueue && isFirst) {
+      const lastTrack = currentQueue[currentQueue.length - 1];
+      handleTogglePlay(lastTrack, { skipShuffle: true });
+      return;
+    }
 
     handleTrackSwitch(-1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handleTogglePlay, handleTrackSwitch]);
 
   const handleNext = useCallback(() => {
-    // if (isRepeat === REPEAT_MODES.ALL && currentQueue && isLast) {
-    //   const repeatQueue = currentQueue[0];
+    if (isRepeat === REPEAT_MODES.ALL && currentQueue && isLast) {
+      const repeatQueue = currentQueue[0];
 
-    //   handleTogglePlay(repeatQueue, { skipShuffle: true });
+      handleTogglePlay(repeatQueue, { skipShuffle: true });
 
-    //   return;
-    // }
+      return;
+    }
 
     handleTrackSwitch(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -199,6 +272,10 @@ export const usePlayer = (props?: Partial<UsePlayerProps>) => {
     },
     [deleteLikedTrack]
   );
+
+  useEffect(() => {
+    TrackPlayer.setRepeatMode(repeatToTrackPlayer(isRepeat));
+  }, [isRepeat]);
 
   useEffect(() => {
     if (!currentPlayedTrackId) return;
@@ -229,14 +306,22 @@ export const usePlayer = (props?: Partial<UsePlayerProps>) => {
     };
   }, [dispatch, handleNext, handlePrev]);
 
+  useEffect(() => {
+    const subscription = TrackPlayer.addEventListener(Event.PlaybackQueueEnded, () => handleNext());
+    return () => subscription.remove();
+  }, [handleNext]);
+
   return {
     handleTogglePlay,
     setupPlayerOnce,
     currentPlayedTrack,
     handlePlay,
+    handleSeek,
     handlePause,
     handlePrev,
     handleNext,
+    handleRepeat,
+    handleShuffle,
     handleLike,
     handleDelete
   };

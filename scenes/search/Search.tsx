@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useInitializeMediaMutation, useSearchSongQuery } from '@/services/mediaApi';
 import SearchBar from '@/components/elements/MusicBar/searchBar';
 import { FlatList, ScrollView } from 'react-native-gesture-handler';
-import MusicBar from './../../components/elements/MusicBar/bar';
+import MusicBar from '../../components/elements/MusicBar/bar';
 import { usePlayer } from '@/hooks/usePlayer';
 import { setCurrentPlayedTrackId, setQueue } from '@/slices/playerSlice';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   }
 });
 
-export default function Profile() {
+export default function Search() {
   const router = useRouter();
   const { isDark } = useColorScheme();
 

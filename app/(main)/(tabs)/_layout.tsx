@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import useColorScheme from '@/hooks/useColorScheme';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme';
 import { useAppSlice } from '@/slices';
 
@@ -19,6 +19,12 @@ export default function TabLayout() {
       }}>
       <Tabs.Screen
         name='index'
+        options={{
+          href: null
+        }}
+      />
+      <Tabs.Screen
+        name='playlist'
         options={{
           href: null
         }}
@@ -44,13 +50,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='profile'
+        name='search'
         options={{
-          title: 'Profile',
-          href: isAuthenticated ? 'profile' : null,
+          title: 'Search',
+          href: isAuthenticated ? 'search' : null,
           tabBarIcon: ({ color }) => (
-            <AntDesign
-              name='profile'
+            <Ionicons
+              name='search-outline'
               size={24}
               color={color}
             />

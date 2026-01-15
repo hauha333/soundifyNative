@@ -1,26 +1,25 @@
-import { router, Stack, useNavigation } from 'expo-router';
+import { router, Stack, useLocalSearchParams, useNavigation } from 'expo-router';
 import { DrawerActions } from '@react-navigation/native';
 import NavigationHeaderLeft from '@/components/layouts/NavigationHeaderLeft';
 import useColorScheme from '@/hooks/useColorScheme';
 import { colors } from '@/theme';
 import { TextInput } from 'react-native-gesture-handler';
-import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import { useLogoutMutation } from '@/services/userApi';
+import { Ionicons } from '@expo/vector-icons';
+import { useDispatch } from 'react-redux';
 import { logout, setSearchQuery } from '@/slices/userSlice';
-import { use, useEffect, useState } from 'react';
+import { useLogoutMutation } from '@/services/userApi';
+import { useState } from 'react';
+import { test } from '@jest/globals';
 
-export default function ProfileStackLayout() {
+export default function PlaylistStackLayout() {
+  const [value, setValue] = useState('');
   const navigation = useNavigation();
+
   const { isDark } = useColorScheme();
   const toggleDrawer = () => navigation.dispatch(DrawerActions.toggleDrawer());
   const dispatch = useDispatch();
   const [logoutUser] = useLogoutMutation();
-
-  const { searchQuery } = useSelector((state: any) => state.userStore);
-  const [value, setValue] = useState('');
-  const [isFocused, setIsFocused] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -33,10 +32,6 @@ export default function ProfileStackLayout() {
     }
   };
 
-  useEffect(() => {
-    setValue(searchQuery);
-  }, [searchQuery]);
-
   return (
     <Stack
       screenOptions={{
@@ -45,20 +40,21 @@ export default function ProfileStackLayout() {
         headerTitleStyle: { fontSize: 18 }
       }}>
       <Stack.Screen
-        name='index'
+        name='[id]'
         options={{
-          title: 'Profile',
+          title: 'Playlist',
           headerTitle: () => (
             <TextInput
-              placeholder='Search...'
-              keyboardType='default'
               value={value}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
+              placeholder='Search...'
               onChangeText={(text) => {
-                if (isFocused) {
-                  dispatch(setSearchQuery(text));
-                }
+                setValue(text);
+                dispatch(setSearchQuery(text));
+              }}
+              onBlur={() => {
+                if (value.length === 0) return;
+                router.replace('/search');
+                setValue('');
               }}
               style={{
                 width: 200,
@@ -91,6 +87,7 @@ export default function ProfileStackLayout() {
               />
             </TouchableOpacity>
           ),
+
           headerLeft: () => <NavigationHeaderLeft onPress={toggleDrawer} />,
           headerTitleAlign: 'center'
         }}

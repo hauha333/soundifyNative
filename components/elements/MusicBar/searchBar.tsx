@@ -7,6 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatTime } from '@/functions';
 import { useDeleteLikedTrackMutation, useSetLikedTracksMutation } from '@/services/userApi';
 import { useState } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/utils/store';
 
 interface Props {
   index: number;
@@ -32,6 +34,10 @@ const styles = StyleSheet.create({
 
 const SearchBar = ({ index, track, onPlay }: Props) => {
   const screenWidth = Dimensions.get('window').width;
+  const { currentPlayedTrackId } = useSelector((state: RootState) => state.playerStore);
+
+  const isCurrent = track?.id_track === currentPlayedTrackId;
+
   return (
     <Pressable
       style={{
@@ -48,23 +54,14 @@ const SearchBar = ({ index, track, onPlay }: Props) => {
       }}
       onPress={() => onPlay()}>
       <View style={{ flexDirection: 'row', opacity: 0.3, alignItems: 'center' }}>
-        <View
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            width: 40
-          }}>
-          <Text style={{ color: '#fff', fontWeight: '700' }}>{index + 1}</Text>
-        </View>
-
         <Image
           source={{
             uri: `${track?.extraSearch?.thumbnails?.url ?? 'default.png'}`
           }}
           style={{ width: 40, height: 40, borderRadius: 5, marginHorizontal: 5 }}
         />
-        <View style={{ maxWidth: screenWidth - 260 }}>
+        <View
+          style={{ maxWidth: isCurrent ? screenWidth - 280 : screenWidth - 160, marginLeft: 5 }}>
           <Text
             style={{
               color: '#fff',

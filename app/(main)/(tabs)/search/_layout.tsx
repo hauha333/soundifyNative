@@ -4,22 +4,23 @@ import NavigationHeaderLeft from '@/components/layouts/NavigationHeaderLeft';
 import useColorScheme from '@/hooks/useColorScheme';
 import { colors } from '@/theme';
 import { TextInput } from 'react-native-gesture-handler';
-import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useDispatch } from 'react-redux';
-import { logout, setSearchQuery } from '@/slices/userSlice';
+import { TouchableOpacity } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import { useLogoutMutation } from '@/services/userApi';
-import { useState } from 'react';
-import { test } from '@jest/globals';
+import { logout, setSearchQuery } from '@/slices/userSlice';
+import { use, useEffect, useState } from 'react';
 
-export default function HomeStackLayout() {
-  const [value, setValue] = useState('');
+export default function SearchStackLayout() {
   const navigation = useNavigation();
-
   const { isDark } = useColorScheme();
   const toggleDrawer = () => navigation.dispatch(DrawerActions.toggleDrawer());
   const dispatch = useDispatch();
   const [logoutUser] = useLogoutMutation();
+
+  const { searchQuery } = useSelector((state: any) => state.userStore);
+  const [value, setValue] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -32,6 +33,10 @@ export default function HomeStackLayout() {
     }
   };
 
+  useEffect(() => {
+    setValue(searchQuery);
+  }, [searchQuery]);
+
   return (
     <Stack
       screenOptions={{
@@ -42,19 +47,18 @@ export default function HomeStackLayout() {
       <Stack.Screen
         name='index'
         options={{
-          title: 'Home',
+          title: 'Search',
           headerTitle: () => (
             <TextInput
-              value={value}
               placeholder='Search...'
+              keyboardType='default'
+              value={value}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
               onChangeText={(text) => {
-                setValue(text);
-                dispatch(setSearchQuery(text));
-              }}
-              onBlur={() => {
-                if (value.length === 0) return;
-                router.replace('/search');
-                setValue('');
+                if (isFocused) {
+                  dispatch(setSearchQuery(text));
+                }
               }}
               style={{
                 width: 200,

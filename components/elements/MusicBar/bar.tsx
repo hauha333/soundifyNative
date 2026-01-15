@@ -49,13 +49,15 @@ const { trackCovers } = Constants.expoConfig?.extra ?? {};
 const MusicBar = ({ index, track, onPlay }: Props) => {
   const screenWidth = Dimensions.get('window').width;
 
-  const { currentPlayedTrackId, triggerLikeTrackId: triggerLike } = useSelector(
-    (state: RootState) => state.playerStore
-  );
+  const {
+    currentPlayedTrackId,
+    triggerLikeTrackId: triggerLike,
+    isShuffle
+  } = useSelector((state: RootState) => state.playerStore);
 
   const isCurrent = track?.id_track === currentPlayedTrackId;
 
-  const { handleLike, handleDelete } = usePlayer();
+  const { handleLike, handleDelete, handleShuffle } = usePlayer();
 
   const [isLiked, setIsLiked] = useState(track?.liked);
 
@@ -83,7 +85,12 @@ const MusicBar = ({ index, track, onPlay }: Props) => {
         alignItems: 'center',
         justifyContent: 'space-between'
       }}
-      onPress={() => onPlay()}>
+      onPress={() => {
+        if (isShuffle) {
+          handleShuffle(track, true);
+        }
+        onPlay();
+      }}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View
           style={{
@@ -99,7 +106,8 @@ const MusicBar = ({ index, track, onPlay }: Props) => {
           source={{ uri: `${trackCovers}${track?.tracks_graphics?.[0]?.cover ?? 'default.png'}` }}
           style={{ width: 40, height: 40, borderRadius: 5, marginHorizontal: 5 }}
         />
-        <View style={{ maxWidth: screenWidth - 260, marginLeft: 5 }}>
+        <View
+          style={{ maxWidth: isCurrent ? screenWidth - 280 : screenWidth - 160, marginLeft: 5 }}>
           <Text
             numberOfLines={1}
             onPress={(e) => {
