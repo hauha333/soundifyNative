@@ -12,13 +12,14 @@ import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/utils/store';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { setSeek, setTriggerLike } from '@/slices/playerSlice';
 import Slider from '@react-native-community/slider';
 import { formatTime } from '@/functions';
 import { useProgress } from 'react-native-track-player';
 import useThrottledCallback from '@/hooks/useThrottleCallback';
 import { RepeatIcon, RepeatOneIcon } from '@/assets/icons/playerIcons';
+import { usePathname } from 'expo-router';
 
 const { trackCovers } = Constants.expoConfig?.extra ?? {};
 
@@ -27,6 +28,7 @@ const HEIGHT = 64;
 const BottomPlayer = () => {
   const { currentPlayedTrack, handleTogglePlay } = usePlayer();
   const screenWidth = Dimensions.get('window').width;
+  const { isAuthenticated } = useSelector((state: any) => state.userStore);
 
   const {
     isPlay,
@@ -40,27 +42,17 @@ const BottomPlayer = () => {
 
   const { position, duration } = useProgress(0);
 
-  const [uiMs, setUiMs] = useState(0);
-  const lastPosRef = useRef(0);
+  const [positionState, setPositionState] = useState(0);
 
+  const isSeeking = useRef(false);
   useEffect(() => {
-    if (!position || !isPlay) return;
-
-    if (Math.abs(position * 1000 - lastPosRef.current) > 1500) {
-      lastPosRef.current = position * 1000;
-      setUiMs(position * 1000);
+    if (!isSeeking.current) {
+      setPositionState(position);
     }
   }, [position]);
+  const [isLiked, setIsLiked] = useState<boolean | undefined>(undefined);
 
-  useEffect(() => {
-    if (!isPlay) return;
-    const id = setInterval(() => {
-      setUiMs((prev) => prev + 1000);
-      lastPosRef.current += 1000;
-    }, 1000);
-
-    return () => clearInterval(id);
-  }, []);
+  const path = usePathname();
 
   const {
     handlePrev,
@@ -72,33 +64,26 @@ const BottomPlayer = () => {
     handleSeek
   } = usePlayer();
 
-  const [isLiked, setIsLiked] = useState<boolean | undefined>(undefined);
-
   const dispatch = useDispatch();
 
   useEffect(() => {
     setIsLiked(currentPlayedTrack?.liked);
   }, [currentPlayedTrack?.liked]);
 
-  //pick correctly like quert bc when track is deleterd from liked list show like true
-
   useEffect(() => {
-    if (triggerLike !== currentPlayedTrack?.id_track) return;
-
-    setIsLiked(!isLiked);
-
-    dispatch(setTriggerLike(null));
-  }, [triggerLike]);
+    if (!isSeeking.current) {
+      setPositionState(position);
+    }
+  }, [position]);
 
   const throttledDispatchProgress = useThrottledCallback((value) => {
     handleSeek(value);
   }, 1_000);
-
   if (!currentPlayedTrack) return null;
 
   return (
-    <View style={styles.timeSplit}>
-      <View style={{ display: 'flex', flexDirection: 'row' }}>
+    <View style={[styles.timeSplit, { display: path === '/login' ? 'none' : 'flex' }]}>
+      <View style={{ flexDirection: 'row' }}>
         <Pressable
           onPress={handlePrev}
           style={{ padding: 10 }}>
@@ -125,16 +110,26 @@ const BottomPlayer = () => {
               width: '100%',
               justifyContent: 'space-between'
             }}>
-            <Text style={{ color: '#ffffffff', fontSize: 12 }}>{formatTime(uiMs)}</Text>
+            <Text style={{ color: '#ffffffff', fontSize: 12 }}>{formatTime(position * 1000)}</Text>
             <Text style={{ color: '#ffffffff', fontSize: 12 }}>
               {formatTime(Math.floor(Number(currentPlayedTrack.duration) * 1000))}
             </Text>
           </View>
           <Slider
+            style={{ flex: 1, top: -7 }}
             minimumValue={0}
-            maximumValue={Number(currentPlayedTrack?.duration)}
-            value={position}
+            maximumValue={Number(currentPlayedTrack?.duration ?? 0)}
+            value={positionState}
+            step={1}
+            minimumTrackTintColor='#863fb5'
+            maximumTrackTintColor='rgba(255,255,255,0.3)'
+            thumbTintColor='#863fb5'
+            onValueChange={(value) => {
+              isSeeking.current = true;
+              setPositionState(value);
+            }}
             onSlidingComplete={(value) => {
+              isSeeking.current = false;
               throttledDispatchProgress(value);
             }}
           />

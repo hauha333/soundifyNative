@@ -9,12 +9,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     name: process.env.EXPO_NAME ?? 'Soundify',
     ios: {
       ...config.ios,
-      bundleIdentifier:
-        process.env.EXPO_IOS_BUNDLE_IDENTIFIER ?? 'com.watarumaeda.react-native-boilerplate'
+      bundleIdentifier: process.env.EXPO_IOS_BUNDLE_IDENTIFIER ?? 'com.soundify.app'
     },
     android: {
       ...config.android,
-      package: process.env.EXPO_ANDROID_PACKAGE ?? 'com.watarumaeda.react_native_boilerplate'
+      package: process.env.EXPO_ANDROID_PACKAGE ?? 'com.soundify.app'
     },
     web: {
       ...config.web,

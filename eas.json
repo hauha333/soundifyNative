@@ -4,7 +4,7 @@
   },
   "build": {
     "base": {
-      "node": "20.9.0",
+      "node": "20.19.4",
       "ios": {
         "image": "auto",
         "resourceClass": "m-medium"
@@ -24,7 +24,7 @@
         "buildConfiguration": "Debug"
       },
       "android": {
-        "buildType": "app-bundle",
+        "buildType": "apk",
         "gradleCommand": ":app:assembleDebug"
       }
     },
@@ -32,14 +32,16 @@
       "extends": "base",
       "channel": "production",
       "environment": "production",
-      "ios": {
-        "simulator": true,
-        "buildConfiguration": "Release"
-      },
       "android": {
-        "buildType": "app-bundle",
-        "gradleCommand": ":app:bundleRelease"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
+      },
+      "ios": {
+        "buildConfiguration": "Release"
       }
+    },
+    "preview": {
+      "node": "20.19.4"
     }
   },
   "submit": {

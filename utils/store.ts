@@ -3,7 +3,6 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { persistStore, persistReducer } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import storage from 'redux-persist/lib/storage';
 import userSlice from '@/slices/userSlice';
 import playerSlice from './../slices/playerSlice';
 import commonSlice from '@/slices/commonSlice';
@@ -16,12 +15,12 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
   [api.reducerPath]: api.reducer,
-  userStore: persistReducer({ key: 'user', storage }, userSlice),
+  userStore: persistReducer({ key: 'user', storage: AsyncStorage }, userSlice),
   playerStore: persistReducer(
-    { key: 'player', storage, blacklist: ['isPlay', 'isLiked'] },
+    { key: 'player', storage: AsyncStorage, blacklist: ['isPlay', 'isLiked'] },
     playerSlice
   ),
-  commonStore: persistReducer({ key: 'common', storage }, commonSlice)
+  commonStore: persistReducer({ key: 'common', storage: AsyncStorage }, commonSlice)
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

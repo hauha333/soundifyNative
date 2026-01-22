@@ -14,13 +14,14 @@ import { User } from '@/types';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getUserAsync } from '@/services';
 import BottomPlayer from '@/components/layouts/Player';
+import TrackPlayer from 'react-native-track-player';
+import { View } from 'react-native-reanimated/lib/typescript/Animated';
 
 SplashScreen.preventAutoHideAsync();
 
 function Router() {
   const { dispatch, setUser, setIsAuthenticated } = useAppSlice();
   const { setPersistData, getPersistData } = useDataPersist();
-  const [isOpen, setOpen] = useState(false);
 
   const [queryClient] = useState(
     () =>
@@ -51,7 +52,6 @@ function Router() {
 
         // hide splash screen
         SplashScreen.hideAsync();
-        setOpen(true);
       } catch {
         // if preload failed, try to get user data from persistent storage
         getPersistData<User>(DataPersistKeys.USER)
@@ -64,7 +64,6 @@ function Router() {
             SplashScreen.hideAsync();
 
             // show bottom sheet
-            setOpen(true);
           });
       }
     })();
@@ -83,9 +82,11 @@ function Router() {
 
 export default function RootLayout() {
   const path = usePathname();
-  if (path.includes('notification.click')) {
-    return router.replace('/home');
-  }
+  useEffect(() => {
+    if (path?.includes('notification.click')) {
+      router.replace('/home');
+    }
+  }, [path]);
   return (
     <Provider>
       <Router />

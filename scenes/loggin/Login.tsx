@@ -6,12 +6,13 @@ import { colors } from '@/theme';
 import { TextInput } from 'react-native-gesture-handler';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useAuthenticationMutation } from '@/services';
 import { AuthenticationParams } from '@/types/auth';
 import * as yup from 'yup';
 
 import { useSelector } from 'react-redux';
 import { useEffect } from 'react';
+import { PAGES } from '@/utils/constants/pages';
+import { useAuthenticationMutation } from '@/services/user.service';
 
 export const loginValidation = yup.object({
   username: yup.string().required(),
@@ -72,6 +73,7 @@ export default function Login() {
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors }
   } = useForm<LoginModel>({
     resolver: yupResolver(loginValidation),
@@ -93,6 +95,8 @@ export default function Login() {
 
       const response = await login(model).unwrap();
 
+      reset();
+
       router.push('/home');
     } catch (e: any) {
       console.error('❌ Login error:', e);
@@ -110,12 +114,10 @@ export default function Login() {
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/home');
-    } else {
-      router.push('/login');
+    if (isAuthenticated && PAGES.AUTHENTICATION_LOGIN.startsWith(PAGES.AUTHENTICATION_LOGIN)) {
+      router.push(PAGES.HOME);
     }
-  }, [isAuthenticated, router]);
+  }, []);
 
   return (
     <View style={[styles.root, isDark && { backgroundColor: colors.blackGray }]}>

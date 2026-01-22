@@ -10,7 +10,6 @@ import { useDispatch } from 'react-redux';
 import { logout, setSearchQuery } from '@/slices/userSlice';
 import { useLogoutMutation } from '@/services/userApi';
 import { useState } from 'react';
-import { test } from '@jest/globals';
 
 export default function HomeStackLayout() {
   const [value, setValue] = useState('');

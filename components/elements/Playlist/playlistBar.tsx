@@ -3,6 +3,7 @@ import Constants from 'expo-constants';
 import React, { useRef, useState } from 'react';
 import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+// @ts-ignore
 import Ripple from 'react-native-material-ripple';
 import { Ionicons } from '@expo/vector-icons';
 import Popover from 'react-native-popover-view';

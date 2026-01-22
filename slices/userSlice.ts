@@ -93,7 +93,7 @@ export const {
 
 export function useAppSlice() {
   const dispatch = useDispatch<Dispatch>();
-  const state = useSelector(({ userStore }: State) => userStore);
+  const state = useSelector(({ userStore }: { userStore: UserState }) => userStore);
   return { dispatch, ...state, ...userSlice.actions };
 }
 

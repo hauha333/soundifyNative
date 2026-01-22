@@ -4,9 +4,13 @@
     "slug": "react-native-boilerplate",
     "scheme": "react-native-boilerplate",
     "version": "3.0.0",
-    "owner": "wataru",
+    "owner": "hauha333",
     "newArchEnabled": true,
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "orientation": "portrait",
     "icon": "./assets/images/logo-lg.png",
     "userInterfaceStyle": "automatic",
@@ -30,8 +34,17 @@
     "web": {
       "favicon": "./assets/images/logo-sm.png"
     },
-    "runtimeVersion": {
-      "policy": "sdkVersion"
+    "runtimeVersion": "1.0.0",
+    "extra": {
+      "env": "development",
+      "apiUrl": "https://soundify.one/api/v1/",
+      "staticMedia": "https://files.soundify.one/static/media/",
+      "trackCovers": "https://soundify.one/static/tracks/covers/",
+      "playlistCovers": "https://soundify.one/static/users/playlists/covers/",
+      "router": {},
+      "eas": {
+        "projectId": "954ec173-3d6d-4964-9ac8-a7a8bed6a780"
+      }
     }
   }
 }

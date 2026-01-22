@@ -152,7 +152,7 @@ export const usePlayer = (props?: Partial<UsePlayerProps>) => {
 
   const handleTogglePlay: HandleTogglePlay = useCallback(
     async (track, options) => {
-      // const { skipShuffle } = options || {};
+      const { skipShuffle } = options || {};
 
       if (!track) return;
 
@@ -161,7 +161,7 @@ export const usePlayer = (props?: Partial<UsePlayerProps>) => {
         dispatch(setPlay(true));
       }
 
-      if (track?.id_track !== currentPlayedTrackId) {
+      if (!skipShuffle && track?.id_track !== currentPlayedTrackId) {
         handleShuffle(track);
       }
 
@@ -237,7 +237,7 @@ export const usePlayer = (props?: Partial<UsePlayerProps>) => {
 
     handleTrackSwitch(-1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handleTogglePlay, handleTrackSwitch]);
+  }, [handleTogglePlay, handleTrackSwitch, isFirst, isRepeat, isShuffle, queue]);
 
   const handleNext = useCallback(() => {
     if (isRepeat === REPEAT_MODES.ALL && currentQueue && isLast) {
@@ -250,7 +250,7 @@ export const usePlayer = (props?: Partial<UsePlayerProps>) => {
 
     handleTrackSwitch(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handleTogglePlay, handleTrackSwitch]);
+  }, [handleTogglePlay, handleTrackSwitch, isLast, isRepeat, isShuffle, queue]);
 
   const handleLike = async (id: number) => {
     try {
