@@ -16,7 +16,7 @@ import { getUserAsync } from '@/services';
 import BottomPlayer from '@/components/layouts/Player';
 import TrackPlayer from 'react-native-track-player';
 import { View } from 'react-native-reanimated/lib/typescript/Animated';
-
+import { Provider as PaperProvider } from 'react-native-paper';
 SplashScreen.preventAutoHideAsync();
 
 function Router() {
@@ -89,8 +89,9 @@ export default function RootLayout() {
   }, [path]);
   return (
     <Provider>
-      <Router />
-      <BottomPlayer />
+      <PaperProvider>
+        <Router />
+      </PaperProvider>
     </Provider>
   );
 }

@@ -9,8 +9,9 @@ export default function DrawerWithTabsLayout() {
         drawerContent={DrawerContents}
         screenOptions={{
           headerShown: false,
-          drawerType: 'back',
-
+          drawerType: 'slide',
+          swipeEnabled: true,
+          swipeEdgeWidth: 150,
           drawerItemStyle: {
             alignItems: 'flex-start'
           },

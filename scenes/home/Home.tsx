@@ -24,7 +24,8 @@ const styles = StyleSheet.create({
     flex: 1,
     width: screenWidth,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    paddingBottom: 35
   },
   Box: {
     height: 250,

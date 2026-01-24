@@ -25,7 +25,8 @@ const styles = StyleSheet.create({
     flex: 1,
     width: screenWidth,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    paddingBottom: 35
   },
   Box: {
     height: 250,
@@ -113,7 +114,7 @@ export default function Playlist() {
   return (
     <View style={[styles.root, isDark && { backgroundColor: colors.blackGray }]}>
       <FlatList
-        data={tracksData?.tracks ?? []}
+        data={[...(tracksData?.tracks ?? [])].reverse()}
         keyExtractor={(item) => String(item.id_track)}
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}

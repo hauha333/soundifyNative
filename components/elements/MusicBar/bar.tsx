@@ -1,5 +1,5 @@
 import { Track } from '@/types/track';
-import { Text, View, Dimensions, Image, Pressable, StyleSheet } from 'react-native';
+import { Text, View, Dimensions, Image, Pressable, StyleSheet, Alert } from 'react-native';
 import Constants from 'expo-constants';
 import Button from '../Button';
 import { usePlayer } from '@/hooks/usePlayer';
@@ -7,8 +7,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatTime } from '@/functions';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/utils/store';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { setTriggerLike } from '@/slices/playerSlice';
+import PlaylistUpdate from '@/components/modals/PlaylistUpdate';
 
 interface Props {
   index: number;
@@ -48,6 +49,9 @@ const { trackCovers } = Constants.expoConfig?.extra ?? {};
 
 const MusicBar = ({ index, track, onPlay }: Props) => {
   const screenWidth = Dimensions.get('window').width;
+  const [showCreate, setShowCreate] = useState(false);
+  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const createBtnRef = useRef<View | null>(null);
 
   const {
     currentPlayedTrackId,
@@ -62,6 +66,10 @@ const MusicBar = ({ index, track, onPlay }: Props) => {
   const [isLiked, setIsLiked] = useState(track?.liked);
 
   const dispatch = useDispatch();
+
+  const openPlaylist = async () => {
+    setShowCreate(true);
+  };
 
   useEffect(() => {
     if (triggerLike !== track?.id_track) return;
@@ -127,6 +135,12 @@ const MusicBar = ({ index, track, onPlay }: Props) => {
         </View>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 10 }}>
+        <PlaylistUpdate
+          showCreate={showCreate}
+          setShowCreate={setShowCreate}
+          popoverPos={popoverPos}
+          track={track}
+        />
         <View
           style={{
             flexDirection: 'row',
@@ -150,9 +164,16 @@ const MusicBar = ({ index, track, onPlay }: Props) => {
               color={isLiked ? '#b70000ff' : '#b0b0b0'}
             />
           </Pressable>
-          <Button style={{ marginInline: 12 }}>
-            <Text style={{ color: 'white' }}>S</Text>
-          </Button>
+          <Pressable
+            ref={createBtnRef}
+            style={{ marginInline: 12 }}
+            onPress={openPlaylist}>
+            <Ionicons
+              name='add-circle-outline'
+              size={20}
+              color='white'
+            />
+          </Pressable>
           <Pressable
             style={{ marginInline: 12 }}
             onPress={() => {}}>
