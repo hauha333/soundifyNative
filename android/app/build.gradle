@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.watarumaeda.react_native_boilerplate'
+    namespace 'com.soundify.app'
     defaultConfig {
-        applicationId 'com.watarumaeda.react_native_boilerplate'
+        applicationId 'com.soundify.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

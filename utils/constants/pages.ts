@@ -12,5 +12,7 @@ export const enum PAGES {
 
   HOME = '/home',
 
+  TRACK = '/track/:track',
+
   SETTINGS = '/settings'
 }

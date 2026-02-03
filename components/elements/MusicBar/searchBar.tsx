@@ -53,7 +53,7 @@ const SearchBar = ({ index, track, onPlay }: Props) => {
         justifyContent: 'space-between'
       }}
       onPress={() => onPlay()}>
-      <View style={{ flexDirection: 'row', opacity: 0.3, alignItems: 'center' }}>
+      <View style={{ flexDirection: 'row', opacity: 0.3, alignItems: 'center', marginLeft: 10 }}>
         <Image
           source={{
             uri: `${track?.extraSearch?.thumbnails?.url ?? 'default.png'}`

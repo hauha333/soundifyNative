@@ -10,6 +10,8 @@ import { RootState } from '@/utils/store';
 import { useEffect, useRef, useState } from 'react';
 import { setTriggerLike } from '@/slices/playerSlice';
 import PlaylistUpdate from '@/components/modals/PlaylistUpdate';
+import { PAGES } from '@/utils/constants/pages';
+import { router, usePathname } from 'expo-router';
 
 interface Props {
   index: number;
@@ -53,11 +55,15 @@ const MusicBar = ({ index, track, onPlay }: Props) => {
   const [popoverPos, setPopoverPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const createBtnRef = useRef<View | null>(null);
 
+  const path = usePathname();
+
   const {
     currentPlayedTrackId,
     triggerLikeTrackId: triggerLike,
     isShuffle
   } = useSelector((state: RootState) => state.playerStore);
+
+  const trackData = btoa(JSON.stringify(track?.id_youtube));
 
   const isCurrent = track?.id_track === currentPlayedTrackId;
 
@@ -102,7 +108,7 @@ const MusicBar = ({ index, track, onPlay }: Props) => {
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View
           style={{
-            display: 'flex',
+            display: path === '/home' ? 'flex' : 'none',
             justifyContent: 'center',
             alignItems: 'center',
             width: 40
@@ -112,7 +118,13 @@ const MusicBar = ({ index, track, onPlay }: Props) => {
 
         <Image
           source={{ uri: `${trackCovers}${track?.tracks_graphics?.[0]?.cover ?? 'default.png'}` }}
-          style={{ width: 40, height: 40, borderRadius: 5, marginHorizontal: 5 }}
+          style={{
+            width: 40,
+            height: 40,
+            marginLeft: path === '/home' ? 0 : 15,
+            borderRadius: 5,
+            marginHorizontal: 5
+          }}
         />
         <View
           style={{ maxWidth: isCurrent ? screenWidth - 280 : screenWidth - 160, marginLeft: 5 }}>
@@ -120,6 +132,7 @@ const MusicBar = ({ index, track, onPlay }: Props) => {
             numberOfLines={1}
             onPress={(e) => {
               e.stopPropagation();
+              router.push(PAGES.TRACK.replace(':track', trackData));
             }}
             style={[styles.trackName, isCurrent && styles.trackNameCurrent]}>
             {track?.name}

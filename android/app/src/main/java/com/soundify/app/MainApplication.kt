@@ -1,4 +1,4 @@
-package com.watarumaeda.react_native_boilerplate
+package com.soundify.app
 import com.facebook.react.common.assets.ReactFontManager
 
 import android.app.Application

@@ -4,11 +4,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
-  ActivityIndicator
+  ActivityIndicator,
+  Animated
 } from 'react-native';
 import useColorScheme from '@/hooks/useColorScheme';
 import { colors } from '@/theme';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useGetLikedTracksQuery } from '@/services/userApi';
 import MusicBar from '@/components/elements/MusicBar/bar';
@@ -16,8 +17,14 @@ import { usePlayer } from '@/hooks/usePlayer';
 import { setCurrentPlayedTrackId, setQueue } from '@/slices/playerSlice';
 import { useDispatch } from 'react-redux';
 import { FlatList } from 'react-native-gesture-handler';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Shadow } from 'react-native-shadow-2';
+import { Image } from 'expo-image';
+import Constants from 'expo-constants';
 
 const screenWidth = Dimensions.get('window').width;
+
+const LikedTracks = require('@/assets/images/LikedTracks.jpg');
 
 const styles = StyleSheet.create({
   root: {
@@ -32,13 +39,17 @@ const styles = StyleSheet.create({
     width: screenWidth,
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.darkPurple,
-    marginBottom: 20
+    marginBottom: 20,
+    paddingTop: 20,
+    overflow: 'hidden'
   },
-  title: {
-    fontSize: 24,
-    marginBottom: 20
+  container: {
+    borderRadius: 12,
+    shadowColor: '#121212',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    overflow: 'hidden'
   },
   buttonTitle: {
     fontSize: 16,
@@ -59,6 +70,70 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  box: {
+    height: 260,
+    width: '100%',
+    padding: 20,
+    overflow: 'hidden'
+  },
+
+  animatedBg: {
+    position: 'absolute',
+    width: '300%',
+    height: 400,
+    top: -100
+  },
+
+  gradient: {
+    height: 400,
+    width: '100%'
+  },
+
+  bottomFade: {
+    position: 'absolute',
+    bottom: 0,
+    width: screenWidth,
+    height: 50
+  },
+
+  content: {
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+
+  image: {
+    width: 150,
+    height: 150,
+    borderRadius: 6,
+    opacity: 0.7,
+    marginBottom: 12
+  },
+
+  textBlock: {
+    alignItems: 'center',
+    position: 'absolute',
+    top: 60
+  },
+
+  type: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 1
+  },
+
+  title: {
+    color: 'white',
+    fontSize: 40,
+    fontWeight: '700'
+  },
+
+  count: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '900',
+    marginTop: 4
   }
 });
 
@@ -86,6 +161,21 @@ export default function Home() {
     setupPlayerOnce();
   }, [setupPlayerOnce]);
 
+  const translateAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(translateAnim, {
+      toValue: 1.55,
+      duration: 32000,
+      useNativeDriver: true
+    }).start();
+  }, []);
+
+  const translateY = translateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -300]
+  });
+
   return (
     <View style={[styles.root, isDark && { backgroundColor: colors.blackGray }]}>
       <FlatList
@@ -100,12 +190,47 @@ export default function Home() {
         }}
         ListHeaderComponent={
           <>
-            <View style={styles.Box}>
-              <Text style={{ fontSize: 20, color: 'white' }}>Playlist</Text>
-              <Text style={{ fontSize: 34, color: 'white' }}>Liked Tracks</Text>
-              <Text style={{ fontSize: 16, color: 'white' }}>
-                {likedTracks?.tracks?.length ?? 0} tracks
-              </Text>
+            <View style={styles.box}>
+              <Animated.View
+                style={[
+                  styles.animatedBg,
+                  {
+                    transform: [{ translateY }]
+                  }
+                ]}>
+                <LinearGradient
+                  colors={['transparent', 'rgb(99, 22, 192)', 'transparent']}
+                  style={styles.gradient}
+                />
+                <LinearGradient
+                  colors={['transparent', 'rgb(99, 22, 192)', 'transparent']}
+                  style={styles.gradient}
+                />
+              </Animated.View>
+
+              <LinearGradient
+                colors={['transparent', '#121212']}
+                style={styles.bottomFade}
+              />
+
+              <View style={styles.content}>
+                <Shadow
+                  distance={20}
+                  offset={[0, 15]}
+                  startColor='rgba(17, 17, 17, 0.43)'
+                  endColor='#00000002'>
+                  <Image
+                    source={LikedTracks}
+                    style={styles.image}
+                  />
+                </Shadow>
+
+                <View style={styles.textBlock}>
+                  <Text style={styles.type}>Playlist</Text>
+                  <Text style={styles.title}>Liked Tracks</Text>
+                  <Text style={styles.count}>{likedTracks?.tracks.length} songs</Text>
+                </View>
+              </View>
             </View>
 
             <View style={{ width: screenWidth, marginLeft: 20, marginBottom: 20 }}>

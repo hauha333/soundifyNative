@@ -1,4 +1,4 @@
-package com.watarumaeda.react_native_boilerplate
+package com.soundify.app
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

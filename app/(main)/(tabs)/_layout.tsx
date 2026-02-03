@@ -27,6 +27,12 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name='track'
+          options={{
+            href: null
+          }}
+        />
+        <Tabs.Screen
           name='playlist'
           options={{
             href: null

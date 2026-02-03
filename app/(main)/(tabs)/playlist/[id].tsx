@@ -4,11 +4,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
-  ActivityIndicator
+  ActivityIndicator,
+  Animated,
+  Image
 } from 'react-native';
 import useColorScheme from '@/hooks/useColorScheme';
 import { colors } from '@/theme';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import MusicBar from '@/components/elements/MusicBar/bar';
 import { usePlayer } from '@/hooks/usePlayer';
@@ -17,6 +19,11 @@ import { useDispatch } from 'react-redux';
 import { FlatList } from 'react-native-gesture-handler';
 import { useGetMyPlaylistsQuery, useGetMyPlaylistTracksQuery } from '@/services/playlistApi';
 import { useLocalSearchParams } from 'expo-router';
+import { Shadow } from 'react-native-shadow-2';
+import { LinearGradient } from 'expo-linear-gradient';
+import Constants from 'expo-constants';
+import { useVibrantColor } from '@/hooks/useVibrantColor';
+import Svg, { Path } from 'react-native-svg';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -35,10 +42,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.blackGray,
-    marginBottom: 20
-  },
-  title: {
-    fontSize: 24,
     marginBottom: 20
   },
   buttonTitle: {
@@ -60,8 +63,86 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  box: {
+    height: 260,
+    width: '100%',
+    padding: 20,
+    overflow: 'hidden'
+  },
+
+  animatedBg: {
+    position: 'absolute',
+    width: '300%',
+    height: 400,
+    top: -100
+  },
+
+  gradient: {
+    height: 400,
+    width: '100%'
+  },
+
+  bottomFade: {
+    position: 'absolute',
+    bottom: 0,
+    width: screenWidth,
+    height: 50
+  },
+
+  content: {
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+
+  image: {
+    width: 150,
+    height: 150,
+    borderRadius: 6,
+    marginBottom: 12,
+    opacity: 0.7
+  },
+
+  textBlock: {
+    alignItems: 'center',
+    position: 'absolute',
+    top: 60
+  },
+
+  type: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 1
+  },
+
+  title: {
+    color: 'white',
+    fontSize: 40,
+    fontWeight: '700'
+  },
+
+  count: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '900',
+    marginTop: 4
+  },
+  placeholderWrapper: {
+    marginBottom: 12
+  },
+
+  placeholder: {
+    width: 150,
+    height: 150,
+    borderRadius: 6,
+    backgroundColor: '#242423',
+    alignItems: 'center',
+    justifyContent: 'center'
   }
 });
+
+const { playlistCovers } = Constants.expoConfig?.extra ?? {};
 
 export default function Playlist() {
   const { isDark } = useColorScheme();
@@ -111,6 +192,27 @@ export default function Playlist() {
     setupPlayerOnce();
   }, [setupPlayerOnce]);
 
+  const translateAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(translateAnim, {
+      toValue: 1,
+      duration: 32000,
+      useNativeDriver: true
+    }).start();
+  }, []);
+
+  const translateY = translateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-300, -670]
+  });
+
+  const iconWay = playlist.playlist ? playlist.playlist.cover_url : playlist.cover_url;
+
+  const imageSrc = `${playlistCovers}${iconWay}`;
+
+  const vibrantColor = useVibrantColor(imageSrc);
+
   return (
     <View style={[styles.root, isDark && { backgroundColor: colors.blackGray }]}>
       <FlatList
@@ -125,16 +227,78 @@ export default function Playlist() {
         }}
         ListHeaderComponent={
           <>
-            <View style={styles.Box}>
-              <Text style={{ fontSize: 20, color: 'white' }}>Playlist</Text>
-              <Text style={{ fontSize: 34, color: 'white' }}>
-                {playlist?.name || playlist?.playlist?.name}
-              </Text>
-              <Text style={{ fontSize: 16, color: 'white' }}>
-                {tracksData?.tracks?.length ?? 0} tracks
-              </Text>
-            </View>
+            <View style={styles.box}>
+              <Animated.View
+                style={[
+                  styles.animatedBg,
+                  {
+                    transform: [{ rotate: '-45deg' }, { translateY }]
+                  }
+                ]}>
+                <LinearGradient
+                  colors={[
+                    'transparent',
+                    iconWay !== null ? vibrantColor : 'rgb(56, 56, 56)',
+                    'transparent'
+                  ]}
+                  style={styles.gradient}
+                />
+                <LinearGradient
+                  colors={[
+                    'transparent',
+                    iconWay !== null ? vibrantColor : 'rgb(56, 56, 56)',
+                    'transparent'
+                  ]}
+                  style={styles.gradient}
+                />
+              </Animated.View>
 
+              <LinearGradient
+                colors={['transparent', '#121212']}
+                style={styles.bottomFade}
+              />
+
+              <View style={styles.content}>
+                {iconWay !== null ? (
+                  <Shadow
+                    distance={20}
+                    offset={[0, 15]}
+                    startColor='rgba(17, 17, 17, 0.43)'
+                    endColor='#00000002'>
+                    <Image
+                      source={{ uri: imageSrc }}
+                      style={styles.image}
+                    />
+                  </Shadow>
+                ) : (
+                  <View style={styles.placeholderWrapper}>
+                    <Shadow
+                      distance={20}
+                      offset={[0, 15]}
+                      startColor='rgba(17, 17, 17, 0.43)'
+                      endColor='#00000002'>
+                      <View style={styles.placeholder}>
+                        <Svg
+                          width={50}
+                          height={50}
+                          viewBox='0 0 20 24'>
+                          <Path
+                            d='M9 3v10.56A4 4 0 1 0 11 17V7h6V3H9z'
+                            fill='#888'
+                          />
+                        </Svg>
+                      </View>
+                    </Shadow>
+                  </View>
+                )}
+
+                <View style={styles.textBlock}>
+                  <Text style={styles.type}>Playlist</Text>
+                  <Text style={styles.title}>{playlist?.name || playlist?.playlist?.name}</Text>
+                  <Text style={styles.count}>{tracksData?.tracks?.length ?? 0} tracks</Text>
+                </View>
+              </View>
+            </View>
             <View style={{ width: screenWidth, marginLeft: 20, marginBottom: 20 }}>
               <TouchableOpacity
                 style={[
