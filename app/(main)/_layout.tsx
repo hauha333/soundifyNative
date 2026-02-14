@@ -11,7 +11,7 @@ export default function DrawerWithTabsLayout() {
           headerShown: false,
           drawerType: 'slide',
           swipeEnabled: true,
-          swipeEdgeWidth: 150,
+          swipeEdgeWidth: 75,
           drawerItemStyle: {
             alignItems: 'flex-start'
           },
