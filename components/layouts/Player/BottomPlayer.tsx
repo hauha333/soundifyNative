@@ -39,7 +39,17 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const BottomPlayer = () => {
-  const { currentPlayedTrack, handleTogglePlay } = usePlayer();
+  const {
+    currentPlayedTrack,
+    handleTogglePlay,
+    handlePrev,
+    handleNext,
+    handleLike,
+    handleDelete,
+    handleRepeat,
+    handleShuffle,
+    handleSeek
+  } = usePlayer();
   const { isAuthenticated } = useSelector((state: any) => state.userStore);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -55,16 +65,6 @@ const BottomPlayer = () => {
   const [isLiked, setIsLiked] = useState<boolean | undefined>(undefined);
 
   const path = usePathname();
-
-  const {
-    handlePrev,
-    handleNext,
-    handleLike,
-    handleDelete,
-    handleRepeat,
-    handleShuffle,
-    handleSeek
-  } = usePlayer();
 
   const dispatch = useDispatch();
 
@@ -125,42 +125,6 @@ const BottomPlayer = () => {
     }
   });
 
-  // const fullPlayerGesture = Gesture.Pan()
-  //   .onStart(() => {
-  //     startY.value = translateY.value;
-  //   })
-  //   .onUpdate((event) => {
-  //     const newY = startY.value - event.translationY;
-  //     if (newY >= 0 && newY <= SCREEN_HEIGHT) {
-  //       translateY.value = newY;
-  //     }
-  //   })
-  //   .onEnd((event) => {
-  //     const SWIPE_THRESHOLD = 100;
-
-  //     if (event.translationY > 150) {
-  //       runOnJS(closePlayer)();
-  //     } else if (
-  //       Math.abs(event.translationY) < 50 &&
-  //       Math.abs(event.translationX) > SWIPE_THRESHOLD
-  //     ) {
-  //       if (event.translationX > 0) {
-  //         runOnJS(handlePrev)();
-  //       } else {
-  //         runOnJS(handleNext)();
-  //       }
-  //       translateY.value = withSpring(SCREEN_HEIGHT, {
-  //         damping: 25,
-  //         stiffness: 120
-  //       });
-  //     } else {
-  //       translateY.value = withSpring(SCREEN_HEIGHT, {
-  //         damping: 25,
-  //         stiffness: 120
-  //       });
-  //     }
-  //   });
-
   const animatedFullPlayerStyle = useAnimatedStyle(() => {
     return {
       transform: [{ translateY: -translateY.value }]
@@ -203,15 +167,14 @@ const BottomPlayer = () => {
   const translateX = useSharedValue(0);
 
   const sliderGesture = Gesture.Pan()
-    .minDistance(5) // Мінімальна відстань перед активацією
+    .minDistance(5)
     .onBegin((event) => {
       translateX.value = (positionState / duration) * containerWidth;
     })
     .onUpdate((event) => {
-      // Визначаємо напрямок руху
       const isHorizontal = Math.abs(event.translationX) > Math.abs(event.translationY);
 
-      if (!isHorizontal) return; // Ігноруємо вертикальні рухи
+      if (!isHorizontal) return;
 
       let newX = (positionState / duration) * containerWidth + event.translationX;
       newX = Math.max(0, Math.min(newX, containerWidth));
@@ -230,7 +193,6 @@ const BottomPlayer = () => {
       runOnJS(handleSeek)(newTime);
     });
 
-  // Жест для всієї зони прогресу (альтернативний метод - тап)
   const tapGesture = Gesture.Tap().onEnd((event) => {
     const locationX = event.x;
     const percent = Math.max(0, Math.min(1, locationX / containerWidth));
@@ -240,19 +202,16 @@ const BottomPlayer = () => {
     runOnJS(handleSeek)(newTime);
   });
 
-  // Комбінований жест
   const combinedGesture = Gesture.Race(tapGesture, sliderGesture);
 
-  // Оновлений жест для шторки з виключенням зони слайдера
   const fullPlayerGesture = Gesture.Pan()
     .onStart(() => {
       startY.value = translateY.value;
     })
     .onUpdate((event) => {
-      // Визначаємо чи це вертикальний рух
       const isVertical = Math.abs(event.translationY) > Math.abs(event.translationX);
 
-      if (!isVertical) return; // Ігноруємо горизонтальні рухи
+      if (!isVertical) return;
 
       const newY = startY.value - event.translationY;
       if (newY >= 0 && newY <= SCREEN_HEIGHT) {

@@ -96,7 +96,7 @@ export const usePlayer = (props?: Partial<UsePlayerProps>) => {
 
   const queue = useMemo<Track[]>(() => {
     return Array.isArray(stableQueue) ? stableQueue : [];
-  }, [currentQueue]);
+  }, [stableQueue]);
 
   const currentPlayedTrack = useMemo(() => {
     return queue.find((q) => q.id_track === currentPlayedTrackId);
@@ -161,8 +161,8 @@ export const usePlayer = (props?: Partial<UsePlayerProps>) => {
         dispatch(setPlay(true));
       }
 
-      if (!skipShuffle && track?.id_track !== currentPlayedTrackId) {
-        handleShuffle(track);
+      if (!skipShuffle && !currentPlayedTrackId && track?.id_track !== currentPlayedTrackId) {
+        handleShuffle(track, true);
       }
 
       await setupPlayerOnce();
@@ -206,14 +206,21 @@ export const usePlayer = (props?: Partial<UsePlayerProps>) => {
         console.log('❌ Error playing track:', e);
       }
     },
-    [currentPlayedTrackId, dispatch, getAudioSrc, handlePause, handlePlay, isPlay, setupPlayerOnce]
+    [
+      currentPlayedTrackId,
+      dispatch,
+      getAudioSrc,
+      handlePause,
+      handlePlay,
+      handleShuffle,
+      isPlay,
+      setupPlayerOnce
+    ]
   );
 
   const handleTrackSwitch = useCallback(
     (direction: number) => {
       const currentIndex = queue.findIndex((track) => track.id_track === currentPlayedTrackId);
-
-      if (currentIndex === -1) return;
 
       const nextTrack = queue[currentIndex + direction];
 
@@ -223,11 +230,10 @@ export const usePlayer = (props?: Partial<UsePlayerProps>) => {
       }
 
       dispatch(setTriggerLike(null));
-      handleTogglePlay(nextTrack);
+      handleTogglePlay(nextTrack, { skipShuffle: true });
     },
-    [currentPlayedTrack, queue, handleTogglePlay, dispatch]
+    [currentPlayedTrackId, queue, handleTogglePlay, handlePause, dispatch]
   );
-
   const handlePrev = useCallback(() => {
     if (isRepeat === REPEAT_MODES.ALL && currentQueue && isFirst) {
       const lastTrack = currentQueue[currentQueue.length - 1];
@@ -310,6 +316,29 @@ export const usePlayer = (props?: Partial<UsePlayerProps>) => {
     const subscription = TrackPlayer.addEventListener(Event.PlaybackQueueEnded, () => handleNext());
     return () => subscription.remove();
   }, [handleNext]);
+
+  const lastTrackId = useRef(currentPlayedTrackId);
+  const hasAutoSkipped = useRef(false);
+
+  useEffect(() => {
+    if (lastTrackId.current !== currentPlayedTrackId) {
+      lastTrackId.current = currentPlayedTrackId;
+      hasAutoSkipped.current = false;
+    }
+  }, [currentPlayedTrackId]);
+
+  useEffect(() => {
+    if (
+      duration > 0 &&
+      position >= duration - 0.5 &&
+      position < duration &&
+      !hasAutoSkipped.current &&
+      isPlay
+    ) {
+      hasAutoSkipped.current = true;
+      handleNext();
+    }
+  }, [position, duration, handleNext, isPlay]);
 
   return {
     handleTogglePlay,
