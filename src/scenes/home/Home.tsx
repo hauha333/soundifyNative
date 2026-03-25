@@ -220,7 +220,7 @@ export default function Home() {
                   startColor='rgba(17, 17, 17, 0.43)'
                   endColor='#00000002'>
                   <Image
-                    source={LikedTracks ? LikedTracks : require('@/assets/images/LikedTracks.jpg')}
+                    source={LikedTracks}
                     style={styles.image}
                   />
                 </Shadow>
